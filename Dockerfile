@@ -9,7 +9,9 @@ RUN go get github.com/m-lab/ndt5-client-go/cmd/ndt5-client
 
 # Murakami image
 FROM python:3.7-buster
-# Install dependencies and speedtest-cli
+# Install dependencies, ooniprobe, and speedtest-cli
+RUN apt-key adv --verbose --keyserver hkp://keyserver.ubuntu.com --recv-keys 'B5A08F01796E7F521861B449372D1FF271F2DD50' > /dev/null
+RUN echo deb http://deb.ooni.org/ unstable main | tee /etc/apt/sources.list.d/ooniprobe.list
 RUN apt-get update
 RUN apt-get install -y git gcc libc-dev libffi-dev libssl-dev make rustc cargo
 RUN /usr/local/bin/python3.7 -m pip install --upgrade pip
