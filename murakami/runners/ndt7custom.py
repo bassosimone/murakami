@@ -197,7 +197,7 @@ class Ndt7ClientCustom(MurakamiRunner):
                 "-format=json",
                 "-quiet",
                 "-scheme=ws",
-                "-locate.url=https://locate.measurementlab.net/v2/nearest/?country=" + country
+                "-locate.url=https://locate-dot-mlab-sandbox.appspot.com/v2/nearest/?country=" + country
             ]
             logger.info("Running ndt7custom measurement (country): " + country)
             results.append(self._run_client(cmdargs))
@@ -209,7 +209,7 @@ class Ndt7ClientCustom(MurakamiRunner):
                 "-format=json",
                 "-quiet",
                 "-scheme=ws",
-                "-locate.url=https://locate.measurementlab.net/v2/nearest/?region=" + region
+                "-locate.url=https://locate-dot-mlab-sandbox.appspot.com/v2/nearest/?region=" + region
             ]
             logger.info("Running ndt7custom measurement (region): " + region)
             results.append(self._run_client(cmdargs))
