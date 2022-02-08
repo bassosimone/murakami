@@ -42,32 +42,30 @@ class FastClient(MurakamiRunner):
         murakami_output = {}
 
         if output.returncode == 0:
-            summary = {}
-            
-            # Get DL/UL speed from the output via a regex.
-            output_regex = r"(\d+) Mbps.+?\/ (\d+) Mbps"
-            result = re.search(output_regex, output.stdout,re.MULTILINE)
-            if result is None or len(result.groups()) != 2:
-                logger.error("Could not parse fast-cli output.")
-                logger.error("stdout: {}".format(output.stdout))
-                logger.error("stderr: {}".format(output.stderr))
-                murakami_output['TestError'] = \
-                    "Could not parse fast-cli output: {}".format(output.stdout)
-                return murakami_output
-            groups = result.groups()
-            murakami_output['DownloadValue'] = groups[0]
+            result = None
+            try:
+                result = json.loads(output.stdout)
+            except json.decoder.JSONDecodeError as e:
+                raise RunnerError(
+                    "fast-cli returned invalid JSON. (err: " + str(e) + ")"
+                )
+
+            murakami_output['DownloadValue'] = result['downloadSpeed']
             murakami_output['DownloadUnit'] = 'Mbit/s'
-            murakami_output['UploadValue'] = groups[1]
+            murakami_output['UploadValue'] = result['uploadSpeed']
             murakami_output['UploadUnit'] = 'Mbit/s'
+            murakami_output['DownloadedMBytes'] = result['downloaded']
+            murakami_output['UploadedMBytes'] = result['uploaded']
+            murakami_output['Latency'] = result['latency']
+            murakami_output['LatencyUnit'] = 'ms'
+            murakami_output['Bufferbloat'] = result['bufferBloat']
+            murakami_output['BufferbloatUnit'] = 'ms'
+            murakami_output["UserLocation"] = result['userLocation']
+            murakami_output['UserIP'] = result['userIp']
         else:
-            # Set TestError to stderr and every other field to None.
+            # Set TestError to stderr and TestOutput to stdout.
             murakami_output['TestError'] = output.stderr
-
-            murakami_output['DownloadValue'] = None
-            murakami_output['DownloadUnit'] = None
-            murakami_output['UploadValue'] = None
-            murakami_output['UploadUnit'] = None
-
+            murakami_output['TestOutput'] = output.stdout
         return murakami_output
         
     def _start_test(self):
@@ -80,7 +78,7 @@ class FastClient(MurakamiRunner):
 
         if shutil.which("fast") is not None:
             starttime = datetime.datetime.utcnow()
-            output = subprocess.run(["fast", "-u", "--single-line"],
+            output = subprocess.run(["fast", "-u", "--json"],
                                     text=True,
                                     capture_output=True,
                                     env=client_env)
